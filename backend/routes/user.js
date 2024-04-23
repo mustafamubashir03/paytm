@@ -36,21 +36,42 @@ router2.post("/signin", async (req, res) => {
   res.json({ msg: "Successfully authenticated", token: token });
 });
 router2.put("/", authMiddleware, async (req, res) => {
-  const userBody = req.body;
   const id = req.userId;
   console.log(id);
-  userUpdateSchema.safeParse(userBody);
-  if (userBody.password) {
-    await User.findByIdAndUpdate({ id }, { password: userBody.password });
+  const userBody = req.body;
+  const { success } = userUpdateSchema.safeParse(userBody);
+  if (!success) {
+    return res.status(403).json({ message: "Invalid input" });
+  }
+  const foundDoc = await User.findById(id);
+  if (!foundDoc) {
+    res.status(403).json({ message: "User not found" });
   }
   if (userBody.firstName) {
-    await User.findByIdAndUpdate({ id }, { firstName: userBody.firstName });
+    foundDoc.firstName = userBody.firstName;
   }
   if (userBody.lastName) {
-    await User.findByIdAndUpdate({ id }, { lastName: userBody.lastName });
+    foundDoc.lastName = userBody.lastName;
   }
+  if (userBody.password) {
+    foundDoc.password = userBody.password;
+  }
+  foundDoc.save();
+
 
   res.json({ message: "Updated successfully" });
 });
+
+
+router2.get("/bulk",async(req,res)=>{
+  const filter = req.query.filter || "";
+  const regex = new RegExp (filter,"i");
+  const query = {$or:[{firstName:{$regex: regex}},{lastName:{$regex: regex}}]};
+  const usersFound = await User.find(query);
+  res.json({user: usersFound.map(user =>({username:user.username, firstName:user.firstName, lastName:user.lastName}))});
+})
+
+
+
 
 module.exports = { router2 };
