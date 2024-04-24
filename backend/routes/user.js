@@ -7,7 +7,6 @@ const { userSchema } = require("../zod.validation");
 const { userUpdateSchema } = require("../zod.validation.js");
 const jwt = require("jsonwebtoken");
 
-
 router2.post("/signup", async (req, res) => {
   const userInfo = req.body;
   const { success } = userSchema.safeParse(userInfo);
@@ -19,9 +18,11 @@ router2.post("/signup", async (req, res) => {
         .status(403)
         .json({ message: "Username or Password already taken", err })
     );
-    const newUserAccount = await UserAccount.create({referenceId:newUser._id,balance:balanceGenerator()})
-    const token = await jwt.sign({ userId: newUser._id }, JWT_SECRET);
-    res.json({ msg: `user has been created`, token , newUserAccount});
+    const newUserAccount = await UserAccount.create({
+      referenceId: newUser._id,
+      balance: balanceGenerator(),
+    });
+    res.json({ msg: `user has been created` });
   }
 });
 
@@ -40,7 +41,6 @@ router2.post("/signin", async (req, res) => {
 });
 router2.put("/", authMiddleware, async (req, res) => {
   const id = req.userId;
-  console.log(id);
   const userBody = req.body;
   const { success } = userUpdateSchema.safeParse(userBody);
   if (!success) {
@@ -48,7 +48,7 @@ router2.put("/", authMiddleware, async (req, res) => {
   }
   const foundDoc = await User.findById(id);
   if (!foundDoc) {
-    res.status(403).json({ message: "User not found" });
+    return res.status(403).json({ message: "User not found" });
   }
   if (userBody.firstName) {
     foundDoc.firstName = userBody.firstName;
@@ -61,22 +61,28 @@ router2.put("/", authMiddleware, async (req, res) => {
   }
   foundDoc.save();
 
-
   res.json({ message: "Updated successfully" });
 });
 
-
-router2.get("/bulk",async(req,res)=>{
+router2.get("/bulk", async (req, res) => {
   const filter = req.query.filter || "";
-  const regex = new RegExp (filter,"i");
-  const query = {$or:[{firstName:{$regex: regex}},{lastName:{$regex: regex}}]};
+  const regex = new RegExp(filter, "i");
+  const query = {
+    $or: [{ firstName: { $regex: regex } }, { lastName: { $regex: regex } }],
+  };
   const usersFound = await User.find(query);
-  res.json({user: usersFound.map(user =>({username:user.username, firstName:user.firstName, lastName:user.lastName, id:user._id}))});
-})
+  res.json({
+    user: usersFound.map((user) => ({
+      username: user.username,
+      firstName: user.firstName,
+      lastName: user.lastName,
+      id: user._id,
+    })),
+  });
+});
 
-function balanceGenerator(){
-  return(Math.round(Math.random()*100) + 1);
+function balanceGenerator() {
+  return Math.round(Math.random() * 100) + 1;
 }
-
 
 module.exports = { router2 };

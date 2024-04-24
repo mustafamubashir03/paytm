@@ -12,4 +12,8 @@ const userUpdateSchema = z.object({
     password:z.string().max(15).optional()
 })
 
-module.exports = {userSchema,userUpdateSchema};
+const transferSchema = z.object({
+    to:z.string(),
+    amount:z.number()
+})
+module.exports = {userSchema,userUpdateSchema,transferSchema};
