@@ -2,10 +2,12 @@ const { authMiddleware } = require("../middleware.js");
 const { JWT_SECRET } = require("../config.js");
 const express = require("express");
 const router2 = express.Router();
-const { User } = require("../db.js");
+const { User, UserAccount } = require("../db.js");
 const { userSchema } = require("../zod.validation");
 const { userUpdateSchema } = require("../zod.validation.js");
 const jwt = require("jsonwebtoken");
+
+
 router2.post("/signup", async (req, res) => {
   const userInfo = req.body;
   const { success } = userSchema.safeParse(userInfo);
@@ -17,8 +19,9 @@ router2.post("/signup", async (req, res) => {
         .status(403)
         .json({ message: "Username or Password already taken", err })
     );
+    const newUserAccount = await UserAccount.create({referenceId:newUser._id,balance:balanceGenerator()})
     const token = await jwt.sign({ userId: newUser._id }, JWT_SECRET);
-    res.json({ msg: `user has been created`, token });
+    res.json({ msg: `user has been created`, token , newUserAccount});
   }
 });
 
@@ -68,10 +71,12 @@ router2.get("/bulk",async(req,res)=>{
   const regex = new RegExp (filter,"i");
   const query = {$or:[{firstName:{$regex: regex}},{lastName:{$regex: regex}}]};
   const usersFound = await User.find(query);
-  res.json({user: usersFound.map(user =>({username:user.username, firstName:user.firstName, lastName:user.lastName}))});
+  res.json({user: usersFound.map(user =>({username:user.username, firstName:user.firstName, lastName:user.lastName, id:user._id}))});
 })
 
-
+function balanceGenerator(){
+  return(Math.round(Math.random()*100) + 1);
+}
 
 
 module.exports = { router2 };
