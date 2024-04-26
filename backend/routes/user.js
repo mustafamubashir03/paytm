@@ -22,7 +22,8 @@ router2.post("/signup", async (req, res) => {
       referenceId: newUser._id,
       balance: balanceGenerator(),
     });
-    res.json({ msg: `user has been created` });
+    const token = await jwt.sign({ userId: newUser._id }, JWT_SECRET);
+    res.json({ msg: "user has been created", token });
   }
 });
 
@@ -82,7 +83,7 @@ router2.get("/bulk", async (req, res) => {
 });
 
 function balanceGenerator() {
-  return Math.round(Math.random() * 100) + 1;
+  return Math.round(Math.random() * 10000) + 1;
 }
 
 module.exports = { router2 };
