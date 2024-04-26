@@ -44,12 +44,13 @@ export default function SignUp() {
         />
         <Button
           clickEvent={async () => {
-            await axios.post("http://localhost:3000/api/v1/user/signup", {
+            const response = await axios.post("http://localhost:3000/api/v1/user/signup", {
               firstName,
               lastName,
               username,
               password,
             });
+            localStorage.setItem("token",response.data.token);
           }}
           label={"Sign up"}
         />

@@ -10,7 +10,7 @@ import SignIn from "../pages/SignIn";
 
 function App() {
   return (
-    <div className="bg-slate-800 w-screen ">
+    <div className="bg-slate-800 w-screen min-h-screen ">
       <BrowserRouter>
         <Routes>
           <Route path="/sign-up" element={<SignUp />} />
